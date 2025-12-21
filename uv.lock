@@ -45,6 +45,7 @@ name = "bootcamp2"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "numpy" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "streamlit" },
@@ -53,6 +54,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "streamlit" },
