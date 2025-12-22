@@ -18,3 +18,4 @@ def make_paths(root: Path) -> Paths:
         processed=data / "processed",
         external=data / "external",
     )
+
