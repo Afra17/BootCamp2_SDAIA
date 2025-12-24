@@ -23,8 +23,8 @@ def main() -> None:
     p = make_paths(root)
 
     log.info("Loading raw inputs")
-    orders_raw = read_orders_csv(p.raw / "orders.csv")
-    users = read_users_csv(p.raw / "users.csv")
+    orders_raw = read_orders_csv(p.raw / "order1.csv")
+    users = read_users_csv(p.raw / "user1.csv")
     log.info("Rows: orders_raw=%s, users=%s", len(orders_raw), len(users))
 
     require_columns(orders_raw, ["order_id","user_id","amount","quantity","created_at","status"])
@@ -54,8 +54,8 @@ def main() -> None:
 
     # Task 7: add at least one `assert_in_range(...)` check here (fail fast)
 
-    write_parquet(orders_clean, p.processed / "orders_clean.parquet")
-    write_parquet(users, p.processed / "users.parquet")
+    write_parquet(orders_clean, p.processed / "order1_clean.parquet")
+    write_parquet(users, p.processed / "user1.parquet")
     log.info("Wrote processed outputs: %s", p.processed)
     assert_in_range(orders_clean["amount"], lo=0, name="amount")
     assert_in_range(orders_clean["quantity"], lo=0, name="quantity")

@@ -1,11 +1,10 @@
 import pandas as pd
-
-
+import re
 def enforce_schame(df: pd.DataFrame) -> pd.DataFrame: #there is relationship between columns schame is described here
     return df.assign(
         order_id = df["order_id"].astype("string"),
         user_id = df["user_id"].astype("string"),
-        amount = pd.to_numeric(df["amount"],errors="coerce").astype("Float64"),
+        amount = pd.to_numeric(df["amount"],errors="coerce").astype("Float64"),# errors= make the errors nan insted to have debug  
         quantity=pd.to_numeric(df["quantity"],errors="coerce").astype("Int64")
     )
 def missingness_report(df: pd.DataFrame) -> pd.DataFrame:
@@ -27,8 +26,6 @@ def add_missing_flags(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
 #------------------------------
 #Normaliztion Functions
 
-import re
-import pandas as pd
 
 _ws = re.compile(r"\s+")
 
@@ -55,3 +52,39 @@ def dedupe_keep_latest(df: pd.DataFrame, key_cols: list[str], ts_col: str) -> pd
           .drop_duplicates(subset=key_cols, keep="last")
           .reset_index(drop=True)
     )
+#----------------------------------
+## parse Datatime
+
+def parse_datetime(df: pd.DataFrame, col: str, *, utc: bool = True) -> pd.DataFrame:
+    dt = pd.to_datetime(df[col], errors="coerce", utc=utc)
+    return df.assign(**{col: dt})
+
+def add_time_parts(df: pd.DataFrame, ts_col: str) -> pd.DataFrame:
+    ts = df[ts_col]
+    return df.assign(
+    date=ts.dt.date,
+    year=ts.dt.year,
+    month=ts.dt.to_period("M").astype("string"),
+    dow=ts.dt.day_name(),
+    hour=ts.dt.hour,
+    )
+
+
+#---------------------------------------------
+#outlier halper
+def iqr_bounds(s: pd.Series, k: float = 1.5) -> tuple[float, float]:
+    x = s.dropna()
+    q1 = x.quantile(0.25)
+    q3 = x.quantile(0.75)
+    iqr = q3 - q1
+    return float(q1 - k * iqr), float(q3 + k * iqr)
+
+def winsorize(s: pd.Series, lo: float = 0.01, hi: float = 0.99) -> pd.Series:
+    x = s.dropna()
+    a, b = x.quantile(lo), x.quantile(hi)
+    return s.clip(lower=a, upper=b)
+
+#optinal 
+def add_outlier_flag(df: pd.DataFrame, col: str, *, k: float = 1.5) -> pd.DataFrame:
+    lo, hi = iqr_bounds(df[col], k=k)
+    return df.assign(**{f"{col}__is_outlier": (df[col] < lo) | (df[col] > hi)})
